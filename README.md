@@ -110,8 +110,9 @@ La documentación de los endpoints está disponible y se irá alimentando a futu
 2. Haz pull request describiendo los cambios.
 
 ### Licencia
-MIT
 
----
+Este proyecto está licenciado bajo los términos de la licencia MIT. Consulta el archivo [LICENSE](./LICENSE) para más detalles.
+
+----
 
 > Para detalles de reglas de negocio, historias de usuario y arquitectura, consulta la documentación y los comentarios en el código fuente.
