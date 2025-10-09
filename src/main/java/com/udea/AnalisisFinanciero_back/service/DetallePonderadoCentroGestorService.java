@@ -1,30 +1,37 @@
 package com.udea.AnalisisFinanciero_back.service;
 
 import com.udea.AnalisisFinanciero_back.DTO.DetallePonderadoCentroGestorDTO;
+import com.udea.AnalisisFinanciero_back.entity.CentroGestor;
 import com.udea.AnalisisFinanciero_back.entity.DetallePonderadoCentroGestor;
+import com.udea.AnalisisFinanciero_back.exceptions.ResourceNotFoundException;
+import com.udea.AnalisisFinanciero_back.mapper.DetallePonderadoMapper;
+import com.udea.AnalisisFinanciero_back.repository.CentroGestorRepository;
 import com.udea.AnalisisFinanciero_back.repository.DetallePonderadoCentroGestorRepository;
 import jakarta.transaction.Transactional;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
 public class DetallePonderadoCentroGestorService {
     private final DetallePonderadoCentroGestorRepository repository;
-
-    @Autowired
-    public DetallePonderadoCentroGestorService(DetallePonderadoCentroGestorRepository repository) {
-        this.repository = repository;
-    }
+    private final CentroGestorRepository centroGestorRepository;
+    private final DetallePonderadoMapper detallePonderadoMapper;
 
     @Transactional
     public DetallePonderadoCentroGestor guardarDetalle(DetallePonderadoCentroGestorDTO dto) {
         validarPorcentajes(dto);
-        // Aquí iría el mapeo DTO -> Entidad
+        
+        // Buscar el CentroGestor por ID
+        CentroGestor centroGestor = centroGestorRepository.findById(dto.getCentroGestorId())
+                .orElseThrow(() -> new ResourceNotFoundException("Centro Gestor no encontrado con ID: " + dto.getCentroGestorId()));
+        
+        // Mapear DTO -> Entidad
         DetallePonderadoCentroGestor detalle = new DetallePonderadoCentroGestor();
-        detalle.setCentroGestor(null); // Asignar entidad según lógica
+        detalle.setCentroGestor(centroGestor);
         detalle.setEnero(dto.getEnero());
         detalle.setFebrero(dto.getFebrero());
         detalle.setMarzo(dto.getMarzo());
@@ -38,6 +45,7 @@ public class DetallePonderadoCentroGestorService {
         detalle.setNoviembre(dto.getNoviembre());
         detalle.setDiciembre(dto.getDiciembre());
         detalle.setTotal(dto.getTotal());
+        
         return repository.save(detalle);
     }
 
@@ -60,6 +68,13 @@ public class DetallePonderadoCentroGestorService {
         if (dto.getTotal().compareTo(new BigDecimal("100.00")) != 0) {
             throw new IllegalArgumentException("El total debe ser igual a 100%");
         }
+    }
+
+    /**
+     * Convierte detalle ponderado entidad a DTO usando mapper
+     */
+    public DetallePonderadoCentroGestorDTO convertirEntidadADTO(DetallePonderadoCentroGestor detalle) {
+        return detallePonderadoMapper.toDTO(detalle);
     }
 
     // Otros métodos CRUD y de consulta

@@ -1,8 +1,14 @@
 package com.udea.AnalisisFinanciero_back.service;
 
+import com.udea.AnalisisFinanciero_back.DTO.CreateUsuarioDTO;
 import com.udea.AnalisisFinanciero_back.DTO.UsuarioDTO;
+import com.udea.AnalisisFinanciero_back.entity.Estado;
+import com.udea.AnalisisFinanciero_back.entity.Rol;
 import com.udea.AnalisisFinanciero_back.entity.Usuario;
+import com.udea.AnalisisFinanciero_back.exceptions.ValidationException;
 import com.udea.AnalisisFinanciero_back.mapper.UsuarioMapper;
+import com.udea.AnalisisFinanciero_back.repository.EstadoRepository;
+import com.udea.AnalisisFinanciero_back.repository.RolRepository;
 import com.udea.AnalisisFinanciero_back.repository.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -10,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -19,12 +26,18 @@ public class UsuarioService {
     private final UsuarioRepository userRepository;
     private final UsuarioMapper userMapper;
     private final PasswordEncoder passwordEncoder;
+    private final RolRepository rolRepository;
+    private final EstadoRepository estadoRepository;
 
     @Autowired
-    public UsuarioService(UsuarioRepository usuarioRepository, UsuarioMapper usuarioMapper, PasswordEncoder passwordEncoder) {
+    public UsuarioService(UsuarioRepository usuarioRepository, UsuarioMapper usuarioMapper, 
+                         PasswordEncoder passwordEncoder, RolRepository rolRepository, 
+                         EstadoRepository estadoRepository) {
         this.userRepository = usuarioRepository;
         this.userMapper = usuarioMapper;
         this.passwordEncoder = passwordEncoder;
+        this.rolRepository = rolRepository;
+        this.estadoRepository = estadoRepository;
     }
 
     /**
@@ -109,5 +122,60 @@ public class UsuarioService {
         return userRepository.findByEmail(email)
                 .map(usuario -> passwordEncoder.matches(password, usuario.getPassword()))
                 .orElse(false);
+    }
+
+    /**
+     * Crea un nuevo usuario con validaciones de negocio específicas para administradores
+     * @param createUsuarioDTO DTO con los datos del usuario a crear
+     * @return DTO del usuario creado
+     * @throws ValidationException si hay errores de validación
+     */
+    public UsuarioDTO crearUsuarioPorAdmin(CreateUsuarioDTO createUsuarioDTO) {
+        // Verificar que el email tenga el dominio correcto
+        if (!createUsuarioDTO.getEmail().endsWith("@udea.edu.co")) {
+            throw new ValidationException(Map.of("email", "Solo se permiten emails con dominio @udea.edu.co"));
+        }
+        
+        // Verificar que el email no esté en uso
+        if (userRepository.existsByEmail(createUsuarioDTO.getEmail())) {
+            throw new ValidationException(Map.of("email", "El email ya está registrado"));
+        }
+        
+        // Verificar que el documento no esté en uso
+        if (userRepository.existsByDocumento(createUsuarioDTO.getDocumento())) {
+            throw new ValidationException(Map.of("documento", "El documento ya está registrado"));
+        }
+        
+        // Verificar que el rol sea válido (solo ORDENADOR_GASTO o DILIGENCIADOR)
+        Optional<Rol> rolOpt = rolRepository.findById(createUsuarioDTO.getRolId());
+        if (rolOpt.isEmpty()) {
+            throw new ValidationException(Map.of("rolId", "Rol no encontrado"));
+        }
+        
+        Rol rol = rolOpt.get();
+        if (!rol.getNombreRol().equals("ORDENADOR_GASTO") && !rol.getNombreRol().equals("DILIGENCIADOR")) {
+            throw new ValidationException(Map.of("rolId", "Solo se pueden crear usuarios con rol ORDENADOR_GASTO o DILIGENCIADOR"));
+        }
+        
+        // Verificar que el estado exista
+        Optional<Estado> estadoOpt = estadoRepository.findById(createUsuarioDTO.getEstadoId());
+        if (estadoOpt.isEmpty()) {
+            throw new ValidationException(Map.of("estadoId", "Estado no encontrado"));
+        }
+        
+        // Convertir a UsuarioDTO
+        UsuarioDTO usuarioDTO = new UsuarioDTO();
+        usuarioDTO.setNombre(createUsuarioDTO.getNombre());
+        usuarioDTO.setApellido(createUsuarioDTO.getApellido());
+        usuarioDTO.setEmail(createUsuarioDTO.getEmail());
+        usuarioDTO.setDocumento(createUsuarioDTO.getDocumento());
+        usuarioDTO.setPassword(createUsuarioDTO.getPassword());
+        usuarioDTO.setTelefono(createUsuarioDTO.getTelefono());
+        usuarioDTO.setFechaRegistro(java.time.LocalDate.now());
+        usuarioDTO.setRolId(createUsuarioDTO.getRolId());
+        usuarioDTO.setEstado(createUsuarioDTO.getEstadoId());
+        
+        // Crear usuario
+        return createUser(usuarioDTO);
     }
 }

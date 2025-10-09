@@ -1,13 +1,7 @@
 package com.udea.AnalisisFinanciero_back.config;
 
-import com.udea.AnalisisFinanciero_back.entity.Estado;
-import com.udea.AnalisisFinanciero_back.entity.Permiso;
-import com.udea.AnalisisFinanciero_back.entity.Rol;
-import com.udea.AnalisisFinanciero_back.entity.Usuario;
-import com.udea.AnalisisFinanciero_back.repository.EstadoRepository;
-import com.udea.AnalisisFinanciero_back.repository.PermisoRepository;
-import com.udea.AnalisisFinanciero_back.repository.RolRepository;
-import com.udea.AnalisisFinanciero_back.repository.UsuarioRepository;
+import com.udea.AnalisisFinanciero_back.entity.*;
+import com.udea.AnalisisFinanciero_back.repository.*;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
@@ -27,17 +21,26 @@ public class DataInitializer implements CommandLineRunner {
     private final PermisoRepository permisoRepository;
     private final UsuarioRepository usuarioRepository;
     private final PasswordEncoder passwordEncoder;
+    private final EstadoClasificadorRepository estadoClasificadorRepository;
+    private final CentroGestorRepository centroGestorRepository;
+    private final ClasificadorPresupuestalRepository clasificadorPresupuestalRepository;
 
     public DataInitializer(EstadoRepository estadoRepository,
                            RolRepository rolRepository,
                            PermisoRepository permisoRepository,
                            UsuarioRepository usuarioRepository,
-                           PasswordEncoder passwordEncoder) {
+                           PasswordEncoder passwordEncoder,
+                           EstadoClasificadorRepository estadoClasificadorRepository,
+                           CentroGestorRepository centroGestorRepository,
+                           ClasificadorPresupuestalRepository clasificadorPresupuestalRepository) {
         this.estadoRepository = estadoRepository;
         this.rolRepository = rolRepository;
         this.permisoRepository = permisoRepository;
         this.usuarioRepository = usuarioRepository;
         this.passwordEncoder = passwordEncoder;
+        this.estadoClasificadorRepository = estadoClasificadorRepository;
+        this.centroGestorRepository = centroGestorRepository;
+        this.clasificadorPresupuestalRepository = clasificadorPresupuestalRepository;
     }
 
     @Override
@@ -59,6 +62,15 @@ public class DataInitializer implements CommandLineRunner {
 
         // Inicializar usuario administrador por defecto
         initUsuarioAdmin();
+        
+        // Inicializar estados de clasificadores
+        initEstadosClasificador();
+        
+        // Inicializar centros gestores
+        initCentrosGestores();
+        
+        // Inicializar clasificadores presupuestales
+        initClasificadoresPresupuestales();
     }
 
     private Estado crearEstado(Integer id, String nombre, String descripcion) {
@@ -161,6 +173,115 @@ public class DataInitializer implements CommandLineRunner {
             // Asignar rol de administrador
             rolRepository.findByNombreRol("ADMINISTRADOR").ifPresent(adminUser::setRol);
             usuarioRepository.save(adminUser);
+        }
+    }
+    
+    private void initEstadosClasificador() {
+        // Estados específicos para clasificadores
+        if (!estadoClasificadorRepository.existsById(1)) {
+            EstadoClasificador estado1 = new EstadoClasificador();
+            estado1.setIdEstado(1);
+            estado1.setNombreEstado("Activo");
+            estado1.setDescripcion("Clasificador activo y disponible");
+            estadoClasificadorRepository.save(estado1);
+        }
+        
+        if (!estadoClasificadorRepository.existsById(2)) {
+            EstadoClasificador estado2 = new EstadoClasificador();
+            estado2.setIdEstado(2);
+            estado2.setNombreEstado("Inactivo");
+            estado2.setDescripcion("Clasificador inactivo");
+            estadoClasificadorRepository.save(estado2);
+        }
+        
+        if (!estadoClasificadorRepository.existsById(3)) {
+            EstadoClasificador estado3 = new EstadoClasificador();
+            estado3.setIdEstado(3);
+            estado3.setNombreEstado("En Revisión");
+            estado3.setDescripcion("Clasificador en proceso de revisión");
+            estadoClasificadorRepository.save(estado3);
+        }
+    }
+    
+    private void initCentrosGestores() {
+        // Centros gestores de ejemplo
+        if (centroGestorRepository.count() == 0) {
+            CentroGestor centro1 = new CentroGestor();
+            centro1.setCodigo("CG001");
+            centro1.setNombreCentroGestor("Centro de Gestión Académica");
+            centroGestorRepository.save(centro1);
+            
+            CentroGestor centro2 = new CentroGestor();
+            centro2.setCodigo("CG002");
+            centro2.setNombreCentroGestor("Centro de Gestión Administrativa");
+            centroGestorRepository.save(centro2);
+            
+            CentroGestor centro3 = new CentroGestor();
+            centro3.setCodigo("CG003");
+            centro3.setNombreCentroGestor("Centro de Gestión Financiera");
+            centroGestorRepository.save(centro3);
+            
+            CentroGestor centro4 = new CentroGestor();
+            centro4.setCodigo("CG004");
+            centro4.setNombreCentroGestor("Centro de Gestión de Recursos Humanos");
+            centroGestorRepository.save(centro4);
+        }
+    }
+    
+    private void initClasificadoresPresupuestales() {
+        // Clasificadores presupuestales de ejemplo
+        if (clasificadorPresupuestalRepository.count() == 0) {
+            EstadoClasificador estadoActivo = estadoClasificadorRepository.findById(1).orElse(null);
+            CentroGestor centro1 = centroGestorRepository.findById(1).orElse(null);
+            CentroGestor centro2 = centroGestorRepository.findById(2).orElse(null);
+            CentroGestor centro3 = centroGestorRepository.findById(3).orElse(null);
+            
+            // Clasificadores para gastos de funcionamiento
+            ClasificadorPresupuestal clasif1 = new ClasificadorPresupuestal();
+            clasif1.setCodigo("CP001");
+            clasif1.setNombreClasificador("Gastos de Personal");
+            clasif1.setDescripcion("Clasificador para gastos relacionados con el personal de la institución");
+            clasif1.setClasePospre("FUNCIONAMIENTO");
+            clasif1.setEstadoClasificador(estadoActivo);
+            clasif1.setCentroGestor(centro1);
+            clasificadorPresupuestalRepository.save(clasif1);
+            
+            ClasificadorPresupuestal clasif2 = new ClasificadorPresupuestal();
+            clasif2.setCodigo("CP002");
+            clasif2.setNombreClasificador("Gastos Generales");
+            clasif2.setDescripcion("Clasificador para gastos generales de operación");
+            clasif2.setClasePospre("FUNCIONAMIENTO");
+            clasif2.setEstadoClasificador(estadoActivo);
+            clasif2.setCentroGestor(centro2);
+            clasificadorPresupuestalRepository.save(clasif2);
+            
+            ClasificadorPresupuestal clasif3 = new ClasificadorPresupuestal();
+            clasif3.setCodigo("CP003");
+            clasif3.setNombreClasificador("Transferencias");
+            clasif3.setDescripcion("Clasificador para transferencias y subsidios");
+            clasif3.setClasePospre("FUNCIONAMIENTO");
+            clasif3.setEstadoClasificador(estadoActivo);
+            clasif3.setCentroGestor(centro3);
+            clasificadorPresupuestalRepository.save(clasif3);
+            
+            // Clasificadores para gastos de inversión
+            ClasificadorPresupuestal clasif4 = new ClasificadorPresupuestal();
+            clasif4.setCodigo("CP004");
+            clasif4.setNombreClasificador("Formación del Talento Humano");
+            clasif4.setDescripcion("Clasificador para inversión en formación de personal");
+            clasif4.setClasePospre("INVERSION");
+            clasif4.setEstadoClasificador(estadoActivo);
+            clasif4.setCentroGestor(centro1);
+            clasificadorPresupuestalRepository.save(clasif4);
+            
+            ClasificadorPresupuestal clasif5 = new ClasificadorPresupuestal();
+            clasif5.setCodigo("CP005");
+            clasif5.setNombreClasificador("Adquisición de Activos");
+            clasif5.setDescripcion("Clasificador para compra de equipos y activos fijos");
+            clasif5.setClasePospre("INVERSION");
+            clasif5.setEstadoClasificador(estadoActivo);
+            clasif5.setCentroGestor(centro2);
+            clasificadorPresupuestalRepository.save(clasif5);
         }
     }
 }

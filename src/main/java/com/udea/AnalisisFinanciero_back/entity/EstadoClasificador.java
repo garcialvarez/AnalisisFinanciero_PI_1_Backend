@@ -1,5 +1,6 @@
 package com.udea.AnalisisFinanciero_back.entity;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -24,6 +25,7 @@ public class EstadoClasificador {
     private String descripcion;
 
     @OneToMany(mappedBy = "estadoClasificador")
+    @JsonManagedReference("estado-clasificadores")
     private List<ClasificadorPresupuestal> clasificadores;
 
 }

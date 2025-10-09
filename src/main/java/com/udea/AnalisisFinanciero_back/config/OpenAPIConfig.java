@@ -40,19 +40,19 @@ public class OpenAPIConfig {
 
         // Definir el esquema de seguridad JWT
         SecurityScheme securityScheme = new SecurityScheme()
-                .name("bearerAuth")
+                .name("Bearer Authentication")
                 .type(SecurityScheme.Type.HTTP)
                 .scheme("bearer")
                 .bearerFormat("JWT")
                 .description("Introduce el token JWT obtenido en la autenticación");
 
         // Definir requerimiento de seguridad
-        SecurityRequirement securityRequirement = new SecurityRequirement().addList("bearerAuth");
+        SecurityRequirement securityRequirement = new SecurityRequirement().addList("Bearer Authentication");
 
         return new OpenAPI()
                 .info(information)
                 .servers(List.of(server))
-                .components(new Components().addSecuritySchemes("bearerAuth", securityScheme))
+                .components(new Components().addSecuritySchemes("Bearer Authentication", securityScheme))
                 .addSecurityItem(securityRequirement);
     }
 }

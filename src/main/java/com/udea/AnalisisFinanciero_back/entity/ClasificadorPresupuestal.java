@@ -1,5 +1,7 @@
 package com.udea.AnalisisFinanciero_back.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -31,13 +33,16 @@ public class ClasificadorPresupuestal {
 
     @ManyToOne
     @JoinColumn(name = "id_estado")
+    @JsonBackReference("estado-clasificadores")
     private EstadoClasificador estadoClasificador;
 
     @ManyToOne
     @JoinColumn(name = "centro_gestor_id")
+    @JsonBackReference("centroGestor-clasificadores")
     private CentroGestor centroGestor;
 
     @OneToMany(mappedBy = "clasificadorPresupuestal")
+    @JsonManagedReference("clasificador-detallesPonderados")
     private List<DetallePonderadoClasificador> detallesPonderados;
 
 }

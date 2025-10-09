@@ -1,5 +1,6 @@
 package com.udea.AnalisisFinanciero_back.entity;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -24,9 +25,11 @@ public class CentroGestor {
     private String nombreCentroGestor;
 
     @OneToMany(mappedBy = "centroGestor")
+    @JsonManagedReference("centroGestor-clasificadores")
     private List<ClasificadorPresupuestal> clasificadores;
 
     @OneToMany(mappedBy = "centroGestor")
+    @JsonManagedReference("centroGestor-detallesPonderados")
     private List<DetallePonderadoCentroGestor> detallesPonderados;
 
 }
