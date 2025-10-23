@@ -34,22 +34,19 @@ public class AuthService {
      * @return AuthResponse con token y datos del usuario
      */
     public AuthResponse login(AuthRequest loginRequest) {
-        // Buscar usuario por email
         Usuario usuario = usuarioRepository.findByEmail(loginRequest.getEmail())
                 .orElse(null);
         
         if (usuario == null) {
-            return new AuthResponse("Credenciales inválidas", "ERROR");
+            return AuthResponse.error("Credenciales inválidas");
         }
 
-        // Validar estado del usuario
         AuthResponse estadoValidation = validarEstadoUsuario(usuario);
         if (estadoValidation != null) {
             return estadoValidation;
         }
 
         try {
-            // Autenticar credenciales
             Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                     loginRequest.getEmail(),
@@ -65,14 +62,13 @@ public class AuthService {
             usuario.setUltimoAcceso(LocalDate.now());
             usuarioRepository.save(usuario);
 
-            // Preparar información del usuario
             String rolNombre = usuario.getRol() != null ? usuario.getRol().getNombreRol() : "SIN_ROL";
             List<String> permisos = usuario.getRol() != null ?
                 usuario.getRol().getPermisos().stream()
                     .map(Permiso::getNombrePermiso)
                     .collect(Collectors.toList()) : List.of();
 
-            return new AuthResponse(
+            return AuthResponse.loginSuccess(
                 jwt,
                 userDetails.getId(),
                 userDetails.getNombre(),
@@ -83,7 +79,7 @@ public class AuthService {
             );
 
         } catch (Exception ex) {
-            return new AuthResponse("Credenciales inválidas", "ERROR");
+            return AuthResponse.error("Credenciales inválidas");
         }
     }
 
@@ -95,17 +91,17 @@ public class AuthService {
     private AuthResponse validarEstadoUsuario(Usuario usuario) {
         // Validar estado del usuario
         if (usuario.getEstado() == null || usuario.getEstado().getIdEstado() == null) {
-            return new AuthResponse("El usuario no tiene estado definido", "ERROR");
+            return AuthResponse.error("El usuario no tiene estado definido");
         }
 
         if (usuario.getEstado().getIdEstado() == 3) { // 3 = SUSPENDIDO
-            return new AuthResponse("El usuario está suspendido. Contacte al administrador.", "SUSPENDED");
+            return AuthResponse.message("El usuario está suspendido. Contacte al administrador.", "SUSPENDED");
         }
 
         if (usuario.getEstado().getIdEstado() != 1) { // 1 = ACTIVO
-            return new AuthResponse("El usuario no está activo", "INACTIVE");
+            return AuthResponse.message("El usuario no está activo", "INACTIVE");
         }
 
-        return null; // Estado válido
+        return null;
     }
 }

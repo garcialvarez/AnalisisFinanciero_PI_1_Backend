@@ -6,5 +6,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface EstadoClasificadorRepository extends JpaRepository<EstadoClasificador, Integer> {
-    // Métodos personalizados si se requieren
+
 }

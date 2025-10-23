@@ -46,9 +46,8 @@ public class ClasificadorPresupuestalMapper {
         dto.setCentroGestorId(clasificador.getCentroGestor() != null ? 
                              clasificador.getCentroGestor().getCentroGestorId() : null);
         dto.setNombreCentroGestor(clasificador.getCentroGestor() != null ? 
-                                 clasificador.getCentroGestor().getNombreCentroGestor() : null);
+                                 clasificador.getCentroGestor().getNombreCentroGestor() : null);        
         
-        // Los detalles ponderados se asignan desde el servicio usando DetallePonderadoMapper
         return dto;
     }
 }

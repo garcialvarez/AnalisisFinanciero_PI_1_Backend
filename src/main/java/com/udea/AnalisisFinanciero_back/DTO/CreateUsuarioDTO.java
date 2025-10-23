@@ -36,5 +36,5 @@ public class CreateUsuarioDTO {
     @NotNull(message = "El rol es obligatorio")
     private Integer rolId;
     
-    private Integer estadoId = 1; // Por defecto activo
+    private Integer estadoId = 1;
 }

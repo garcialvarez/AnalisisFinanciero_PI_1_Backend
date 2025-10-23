@@ -1,5 +1,6 @@
 package com.udea.AnalisisFinanciero_back.DTO;
 
+import com.udea.AnalisisFinanciero_back.service.DetallePonderadoDTO;
 import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotNull;
@@ -7,7 +8,7 @@ import lombok.Data;
 import java.math.BigDecimal;
 
 @Data
-public class DetallePonderadoCentroGestorDTO {
+public class DetallePonderadoCentroGestorDTO implements DetallePonderadoDTO {
     private Integer detallePonderadoId;
     private Integer centroGestorId;
 

@@ -6,5 +6,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface DetallePonderadoCentroGestorRepository extends JpaRepository<DetallePonderadoCentroGestor, Integer> {
-    // Métodos personalizados si se requieren
+    
 }

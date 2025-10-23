@@ -1,6 +1,7 @@
 package com.udea.AnalisisFinanciero_back.entity;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.udea.AnalisisFinanciero_back.service.DetallePonderadoEntity;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -12,7 +13,7 @@ import java.math.BigDecimal;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class DetallePonderadoCentroGestor {
+public class DetallePonderadoCentroGestor implements DetallePonderadoEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "detalle_ponderado_id")
@@ -49,6 +50,4 @@ public class DetallePonderadoCentroGestor {
     private BigDecimal diciembre;
     @Column(name = "total", precision = 7, scale = 2)
     private BigDecimal total;
-
-    // Getters y setters
 }
