@@ -65,7 +65,7 @@ El proyecto puede desplegarse localmente o en cualquier servidor compatible con 
 
 ## Características del Proyecto
 - Arquitectura API RESTful con Spring Boot 3
-- Seguridad con Spring Security y JWT (incluye autenticación 2FA)
+- Seguridad con Spring Security y JWT
 - Documentación automática con Swagger/OpenAPI
 - Validación de datos y reglas de negocio robustas
 - Consolidación y reportes automáticos
@@ -99,11 +99,9 @@ La documentación de los endpoints está disponible y se irá alimentando a futu
 
 ### Reglas de Negocio y Validaciones
 - Solo usuarios con correo institucional pueden autenticarse.
-- Autenticación con 2FA (código enviado y validado).
 - Validación de estados de usuario (activo, suspendido, etc.).
 - Validación de datos en formularios (tipos, rangos, reglas de negocio).
 - Control de roles y permisos diferenciados.
-- Consolidación automática y generación de reportes exportables.
 
 ### Contribución
 1. Realiza fork y crea una rama para tu funcionalidad.
