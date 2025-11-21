@@ -3,8 +3,12 @@ package com.udea.AnalisisFinanciero_back.config;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
+import org.springframework.core.env.Environment;
+import org.springframework.beans.factory.annotation.Autowired;
 
 @Configuration
+@Profile("!test")
 public class EnvironmentValidator implements InitializingBean {
 
     @Value("${jwt.secret:}")
@@ -19,8 +23,18 @@ public class EnvironmentValidator implements InitializingBean {
     @Value("${spring.datasource.password:}")
     private String dbPassword;
 
+    @Autowired
+    private Environment environment;
+
     @Override
     public void afterPropertiesSet() {
+        // Solo validar si no estamos en perfil de test
+        String[] activeProfiles = environment.getActiveProfiles();
+        for (String profile : activeProfiles) {
+            if ("test".equals(profile)) {
+                return; // No validar en tests
+            }
+        }
         validateEnvironmentVariables();
     }
 

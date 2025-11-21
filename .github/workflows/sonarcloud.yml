@@ -1,0 +1,97 @@
+name: SonarCloud Analysis
+
+on:
+  push:
+    branches: [ "main", "develop", "feature/*" ]
+  pull_request:
+    branches: [ "main", "develop" ]
+
+env:
+  JAVA_VERSION: '17'
+
+jobs:
+  build-and-analyze:
+    name: Build and analyze
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_DB: testdb
+          POSTGRES_USER: testuser  
+          POSTGRES_PASSWORD: testpass
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
+
+      - name: Set up JDK ${{ env.JAVA_VERSION }}
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: 'temurin'
+
+      - name: Cache SonarCloud packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.sonar/cache
+          key: ${{ runner.os }}-sonar
+          restore-keys: ${{ runner.os }}-sonar
+
+      - name: Cache Maven packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-m2
+
+      - name: Run tests and generate coverage report
+        env:
+          # Variables de entorno para las pruebas
+          JWT_SECRET: ${{ secrets.JWT_SECRET_TEST }}
+          DB_URL: jdbc:postgresql://localhost:5432/testdb
+          DB_USERNAME: testuser
+          DB_PASSWORD: testpass
+          APP_NAME: AnalisisFinanciero-back-test
+          SERVER_PORT: 8080
+          CONTEXT_PATH: /api
+          JWT_EXPIRATION: 86400000
+        run: |
+          mvn clean compile test jacoco:report
+
+      - name: Build and analyze with SonarCloud
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          # Variables para pruebas durante el análisis
+          JWT_SECRET: ${{ secrets.JWT_SECRET_TEST }}
+          DB_URL: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+          DB_USERNAME: sa
+          DB_PASSWORD: ""
+          APP_NAME: AnalisisFinanciero-back-test
+        run: |
+          mvn verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
+            -Dsonar.projectKey=${{ secrets.SONAR_PROJECT_KEY }} \
+            -Dsonar.organization=${{ secrets.SONAR_ORGANIZATION }} \
+            -Dsonar.host.url=https://sonarcloud.io \
+            -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml \
+            -Dsonar.java.coveragePlugin=jacoco \
+            -Dsonar.junit.reportPaths=target/surefire-reports
+
+      - name: Upload coverage to Codecov (opcional)
+        uses: codecov/codecov-action@v4
+        with:
+          file: target/site/jacoco/jacoco.xml
+          flags: unittests
+          name: codecov-umbrella
+          fail_ci_if_error: false

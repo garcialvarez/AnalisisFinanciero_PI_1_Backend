@@ -3,6 +3,7 @@ package com.udea.AnalisisFinanciero_back.config;
 import com.udea.AnalisisFinanciero_back.entity.*;
 import com.udea.AnalisisFinanciero_back.repository.*;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.context.annotation.Profile;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,6 +15,7 @@ import java.util.Map;
 import java.util.Set;
 
 @Component
+@Profile("!test")
 public class DataInitializer implements CommandLineRunner {
 
     private final EstadoRepository estadoRepository;
